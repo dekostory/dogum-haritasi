@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>{{ kisi.ad }} · Doğum Haritası Okuması</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  @page { size: 900px 1273px; margin: 0; }
+  :root{ --bg:#0f1226; --ink:#f3eee3; --muted:#b9b4c9; --gold:#d8b46a; --line:rgba(216,180,106,.35); --soft:rgba(216,180,106,.14); }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{font-family:Inter,Helvetica,Arial,sans-serif;color:var(--ink)}
+  .slide{width:900px;height:1273px;position:relative;overflow:hidden;page-break-after:always;
+    background:radial-gradient(900px 700px at 85% 0%, #22285a 0%, transparent 60%), var(--bg);
+    padding:96px 72px 110px;display:flex;flex-direction:column;justify-content:center}
+  .slide:last-child{page-break-after:auto}
+  .slide.top{justify-content:flex-start}
+  .stars{position:absolute;inset:0;pointer-events:none;opacity:.5}
+  .num{position:absolute;bottom:44px;right:72px;font-size:13px;color:var(--muted);letter-spacing:.12em}
+  .brand{position:absolute;bottom:44px;left:72px;font-size:13px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
+  .eyebrow{font-size:16px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
+  h1{font-family:"Cormorant Garamond",Georgia,serif;font-weight:500;font-size:76px;line-height:1.04}
+  h2{font-family:"Cormorant Garamond",Georgia,serif;font-weight:500;font-size:56px;line-height:1.08;margin-bottom:30px}
+  h3{font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;font-size:30px;color:var(--gold)}
+  p{font-size:19px;line-height:1.6;color:var(--muted)}
+  .txt p + p{margin-top:10px}
+  .txt p{color:#dcd7e6;font-size:var(--fs,19px)}
+  .txt.sm p{font-size:calc(var(--fs,19px) - 2px)}
+  em{font-family:"Cormorant Garamond",Georgia,serif;font-style:italic;color:var(--gold);font-size:1.1em}
+  .hint{font-style:italic;color:var(--muted);opacity:.7}
+  .card{border:1px solid var(--line);border-radius:14px;padding:26px 30px;background:rgba(255,255,255,.025)}
+  .stack > * + *{margin-top:18px}
+  .head{display:flex;align-items:baseline;gap:14px;margin-bottom:10px;flex-wrap:wrap}
+  .sym{font-size:30px;color:var(--gold);line-height:1;font-family:"Apple Symbols","Segoe UI Symbol",serif}
+  .pos{font-size:15px;letter-spacing:.06em;color:var(--ink);margin-left:auto;border:1px solid var(--line);border-radius:20px;padding:4px 12px;white-space:nowrap}
+  ul.clean{list-style:none}
+  ul.clean li{padding-left:26px;position:relative;margin-bottom:12px;font-size:19px;line-height:1.5;color:var(--ink)}
+  ul.clean li:before{content:"✦";position:absolute;left:0;color:var(--gold);font-size:14px;top:5px}
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:500;padding:0 10px 10px;border-bottom:1px solid var(--line)}
+  td{font-size:17px;color:var(--muted);padding:10px 10px;border-bottom:1px solid var(--soft);vertical-align:top;line-height:1.5}
+  table.sik td{padding:6px 10px;font-size:16px}
+  td.k{color:var(--ink);white-space:nowrap}
+  .note{margin-top:34px;font-size:16px;color:var(--muted);border-left:2px solid var(--gold);padding-left:16px;line-height:1.55}
+  .bar{height:10px;border-radius:6px;background:var(--soft);overflow:hidden;margin:8px 0 18px}
+  .bar i{display:block;height:100%;background:var(--gold)}
+  .row{display:flex;justify-content:space-between;font-size:18px;color:var(--ink)}
+  .houses{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .house{border:1px solid var(--line);border-radius:12px;padding:12px 16px;background:rgba(255,255,255,.02)}
+  .house .t{font-size:14px;color:var(--gold);letter-spacing:.02em}
+  .house .b{font-size:16px;color:var(--ink);margin-top:3px}
+  .house .g{font-size:14px;color:var(--muted);margin-top:2px}
+  .tag{display:inline-block;font-size:12px;letter-spacing:.14em;text-transform:uppercase;padding:3px 10px;border-radius:20px;border:1px solid var(--line);color:var(--gold)}
+  .tag.zor{color:#e3a397;border-color:rgba(217,137,127,.5)}
+  .tag.uyumlu{color:#9cc8e4;border-color:rgba(127,183,217,.5)}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs>
+  <pattern id="st" width="220" height="220" patternUnits="userSpaceOnUse">
+    <circle cx="20" cy="30" r="1" fill="#fff"/><circle cx="140" cy="60" r=".7" fill="#fff"/>
+    <circle cx="90" cy="150" r="1.2" fill="#d8b46a"/><circle cx="190" cy="190" r=".8" fill="#fff"/>
+    <circle cx="60" cy="100" r=".6" fill="#fff"/><circle cx="170" cy="120" r=".9" fill="#fff"/>
+  </pattern>
+</defs></svg>
+{% set STARS %}<svg class="stars" width="900" height="1273"><rect width="900" height="1273" fill="url(#st)"/></svg>{% endset %}
+{% set FOOT %}<div class="brand">{{ marka.ad }}</div>{% endset %}
+
+{# ---------- 1 KAPAK ---------- #}
+<section class="slide">
+  {{ STARS }}
+  <div style="position:absolute;left:140px;top:740px;width:620px;height:533px;overflow:hidden;opacity:.5">{{ cark|safe }}</div>
+  <div style="position:relative;margin-top:-300px">
+    <div class="eyebrow">Kişisel Doğum Haritası Okuması</div>
+    <h1>{{ kisi.ad }}<br><em style="font-size:1em">Gökyüzü Haritan</em></h1>
+    <div style="margin-top:34px;display:grid;grid-template-columns:auto 1fr;gap:8px 28px;font-size:18px">
+      <span style="color:var(--gold)">Doğum Tarihi</span><span>{{ kisi.tarih }}</span>
+      <span style="color:var(--gold)">Doğum Saati</span><span>{{ kisi.saat }}</span>
+      <span style="color:var(--gold)">Doğum Yeri</span><span>{{ kisi.yer }}</span>
+      <span style="color:var(--gold)">Rapor Tarihi</span><span>{{ kisi.rapor_tarihi }}</span>
+    </div>
+  </div>
+  {{ FOOT }}
+</section>
+
+{# ---------- 2 HOŞ GELDİN ---------- #}
+<section class="slide">
+  {{ STARS }}
+  <div class="eyebrow">Hoş Geldin</div>
+  <h2>Sevgili {{ kisi.ad.split(' ')[0] }},</h2>
+  <div class="txt">{{ y.hosgeldin|metin(ipucu.hosgeldin) }}</div>
+  <div class="card" style="margin-top:40px">
+    <h3 style="margin-bottom:14px">Bu rapor nasıl okunur?</h3>
+    <ul class="clean">
+      <li><b style="font-weight:500">Gezegenler</b> → hayatındaki enerjiler (<i>ne?</i>)</li>
+      <li><b style="font-weight:500">Burçlar</b> → bu enerjileri yaşama tarzın (<i>nasıl?</i>)</li>
+      <li><b style="font-weight:500">Evler</b> → hayatın hangi alanında (<i>nerede?</i>)</li>
+      <li><b style="font-weight:500">Açılar</b> → enerjilerin birbiriyle ilişkisi</li>
+    </ul>
+    <p style="margin-top:6px">Acele etmeden oku. Seninle rezonansa giren bölümlere zaman zaman geri dön.</p>
+  </div>
+  {{ FOOT }}<div class="num">02</div>
+</section>
+
+{# ---------- 3 HARİTA ---------- #}
+<section class="slide top">
+  {{ STARS }}
+  <div class="eyebrow">Doğum Haritan</div>
+  <h2 style="margin-bottom:10px">Bir bakışta haritan</h2>
+  <div style="display:flex;justify-content:center;margin:0 0 8px">{{ cark_kucuk|safe }}</div>
+  <table class="sik">
+    <tr><th>Nokta</th><th>Burç</th><th>Derece</th><th>Ev</th></tr>
+    {% for n in tablo %}
+    <tr><td class="k">{{ n.sembol }} {{ n.ad }}</td><td>{{ n.burc_sembol }} {{ n.burc }}</td><td>{{ n.derece }}{% if n.retro %} ℞{% endif %}</td><td>{{ n.ev or '—' }}</td></tr>
+    {% endfor %}
+  </table>
+  {{ FOOT }}<div class="num">03</div>
+</section>
+
+{# ---------- 4 BÜYÜK ÜÇLÜ ---------- #}
+<section class="slide">
+  {{ STARS }}
+  <div class="eyebrow">Temelin</div>
+  <h2>Büyük Üçlü: Güneş · Ay · Yükselen</h2>
+  <div class="stack">
+    {% for k, baslik in [('gunes','Güneş · Özün'),('ay','Ay · Duyguların'),('yukselen','Yükselen · Dünyaya Bakışın')] %}
+    {% set n = N.get(k) %}
+    <div class="card">
+      <div class="head"><span class="sym">{{ n.sembol if n and k!='yukselen' else '↑' }}</span><h3>{{ baslik }}</h3>
+        <span class="pos">{% if n %}{{ n.burc }} {{ n.derece }}{% if n.ev and k!='yukselen' %} · {{ n.ev }}. ev{% endif %}{% else %}Saat gerekli{% endif %}</span></div>
+      <div class="txt">{{ y[k]|metin(ipucu[k]) }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {{ FOOT }}<div class="num">04</div>
+</section>
+
+{# ---------- 5 KİŞİSEL GEZEGENLER ---------- #}
+<section class="slide">
+  {{ STARS }}
+  <div class="eyebrow">Kişisel Gezegenler</div>
+  <h2>Nasıl düşünür, sever ve harekete geçersin?</h2>
+  <div class="stack">
+    {% for k, baslik in [('merkur','Merkür · Zihnin'),('venus','Venüs · Sevgin'),('mars','Mars · İraden')] %}
+    {% set n = N[k] %}
+    <div class="card">
+      <div class="head"><span class="sym">{{ n.sembol }}</span><h3>{{ baslik }}</h3>
+        <span class="pos">{{ n.burc }} {{ n.derece }}{% if n.retro %} ℞{% endif %}{% if n.ev %} · {{ n.ev }}. ev{% endif %}</span></div>
+      <div class="txt">{{ y[k]|metin(ipucu[k]) }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {{ FOOT }}<div class="num">05</div>
+</section>
+
+{# ---------- 6 SOSYAL & KUŞAK ---------- #}
+<section class="slide">
+  {{ STARS }}
+  <div class="eyebrow">Büyük Resim</div>
+  <h2>Büyüme, sorumluluk ve dönüşüm</h2>
+  <div class="stack">
+    {% for k, baslik in [('jupiter','Jüpiter · Şansın'),('saturn','Satürn · Ustalığın'),('uranus','Uranüs · Özgürlüğün'),('neptun','Neptün · Hayallerin'),('pluton','Plüton · Dönüşümün')] %}
+    {% set n = N[k] %}
+    <div style="border-bottom:1px solid var(--soft);padding-bottom:16px">
+      <div class="head" style="margin-bottom:4px"><span class="sym" style="font-size:24px">{{ n.sembol }}</span><h3 style="font-size:25px">{{ baslik }}</h3>
+        <span class="pos" style="font-size:13px">{{ n.burc }}{% if n.retro %} ℞{% endif %}{% if n.ev %} · {{ n.ev }}. ev{% endif %}</span></div>
+      <div class="txt sm">{{ y[k]|metin(ipucu[k]) }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  <p class="note">Uranüs, Neptün ve Plüton yavaş hareket eder; burçları bir kuşağı anlatır. Asıl kişisel anlamlarını bulundukları ev gösterir.</p>
+  {{ FOOT }}<div class="num">06</div>
+</section>
+
+{# ---------- 7 ELEMENT ---------- #}
+<section class="slide">
+  {{ STARS }}
+  <div class="eyebrow">Enerji Dengen</div>
+  <h2>Element ve nitelik dağılımın</h2>
+  <div class="card">
+    <h3 style="margin-bottom:16px">Elementler</h3>
+    {% for e, v in h.elementler.items() %}
+    <div class="row"><span>{{ e }}</span><span style="color:var(--gold)">{{ v }}</span></div><div class="bar"><i style="width:{{ (v / toplam * 100)|round }}%"></i></div>
+    {% endfor %}
+    <h3 style="margin:10px 0 16px">Nitelikler</h3>
+    {% for e, v in h.nitelikler.items() %}
+    <div class="row"><span>{{ e }}</span><span style="color:var(--gold)">{{ v }}</span></div><div class="bar"><i style="width:{{ (v / toplam * 100)|round }}%"></i></div>
+    {% endfor %}
+  </div>
+  <div class="txt" style="margin-top:28px">{{ y.element_yorumu|metin(ipucu.element_yorumu) }}</div>
+  {{ FOOT }}<div class="num">07</div>
+</section>
+
+{# ---------- 8 EVLER ---------- #}
+<section class="slide">
+  {{ STARS }}
+  <div class="eyebrow">Hayat Alanların</div>
+  <h2>12 ev: hayatın sahneleri</h2>
+  {% if h.evler %}
+  <div class="houses">
+    {% for e in h.evler %}
+    <div class="house"><div class="t">{{ e.no }} · {{ e.alan }}</div>
+      <div class="b">{{ e.burc_sembol }} {{ e.burc }}</div>
+      <div class="g">{% if e.gezegenler %}{% for g in e.gezegenler %}{{ g.sembol }} {{ g.ad }}{% if not loop.last %}, {% endif %}{% endfor %}{% else %}&nbsp;{% endif %}</div></div>
+    {% endfor %}
+  </div>
+  <div class="txt" style="margin-top:26px">{{ y.evler_yorumu|metin(ipucu.evler_yorumu) }}</div>
+  {% else %}
+  <p class="note">Doğum saati bilinmediği için evler ve yükselen burç hesaplanamadı. Bu bölüm saat öğrenildiğinde eklenebilir.</p>
+  {% endif %}
+  {{ FOOT }}<div class="num">08</div>
+</section>
+
+{# ---------- 9 AÇILAR ---------- #}
+<section class="slide">
+  {{ STARS }}
+  <div class="eyebrow">Gezegen Diyalogları</div>
+  <h2>Haritanda öne çıkan açılar</h2>
+  <div class="stack">
+    {% for a in acilar %}
+    <div class="card" style="padding:20px 26px">
+      <div class="head" style="margin-bottom:6px"><h3 style="font-size:25px">{{ a.a_sembol }} {{ a.a }} {{ a.aci_sembol }} {{ a.b_sembol }} {{ a.b }}</h3>
+        <span class="tag {{ a.tur }}" style="margin-left:auto">{{ a.aci }}</span></div>
+      <div class="txt sm">{{ a.yorum|metin(ipucu.aci) }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  <p class="note">Uyumlu açılar doğal yeteneklerini, zorlayıcı açılar ise seni en çok geliştiren alanları gösterir. İkisi de değerlidir.</p>
+  {{ FOOT }}<div class="num">09</div>
+</section>
+
+{# ---------- 10 HAYAT ALANLARI ---------- #}
+<section class="slide">
+  {{ STARS }}
+  <div class="eyebrow">Odak Konular</div>
+  <h2>İlişkiler, kariyer ve yaşam yolun</h2>
+  <div class="stack">
+    <div class="card"><div class="head"><span class="sym">♡</span><h3>İlişkiler</h3><span class="pos">Venüs · 7. Ev · Ay</span></div><div class="txt">{{ y.iliskiler|metin(ipucu.iliskiler) }}</div></div>
+    <div class="card"><div class="head"><span class="sym">◈</span><h3>Kariyer</h3><span class="pos">MC · 10. Ev · Satürn</span></div><div class="txt">{{ y.kariyer|metin(ipucu.kariyer) }}</div></div>
+    <div class="card"><div class="head"><span class="sym">☊&#xFE0E;</span><h3>Yaşam Yolun</h3><span class="pos">{% if N.kdugum %}Kuzey Düğüm · {{ N.kdugum.burc }}{% if N.kdugum.ev %} · {{ N.kdugum.ev }}. ev{% endif %}{% endif %}</span></div><div class="txt">{{ y.yasam_yolu|metin(ipucu.yasam_yolu) }}</div></div>
+  </div>
+  {{ FOOT }}<div class="num">10</div>
+</section>
+
+{# ---------- 11 GÜÇLÜ YÖNLER ---------- #}
+<section class="slide">
+  {{ STARS }}
+  <div class="eyebrow">Özet</div>
+  <h2>Güçlü yönlerin ve gelişim alanların</h2>
+  <div class="stack">
+    <div class="card"><h3 style="margin-bottom:16px">✦ Güçlü Yönlerin</h3>
+      <ul class="clean">{% for g in y.guclu_yonler %}<li>{% if g %}{{ g }}{% else %}<span class="hint">[Güçlü yön]</span>{% endif %}</li>{% endfor %}</ul></div>
+    <div class="card"><h3 style="margin-bottom:16px">⟡ Gelişim Alanların</h3>
+      <ul class="clean">{% for g in y.gelisim_alanlari %}<li>{% if g %}{{ g }}{% else %}<span class="hint">[Gelişim alanı]</span>{% endif %}</li>{% endfor %}</ul></div>
+  </div>
+  <p class="note">Gelişim alanları "eksik" değil, hayatın sana sunduğu büyüme davetleridir.</p>
+  {{ FOOT }}<div class="num">11</div>
+</section>
+
+{% set sayfa = 12 %}
+{# ---------- 12 TRANSİTLER (Premium) ---------- #}
+{% if y.paket == 'premium' and y.transitler %}
+<section class="slide">
+  {{ STARS }}
+  <div class="eyebrow">Önümüzdeki 12 Ay</div>
+  <h2>Seni bekleyen dönemler</h2>
+  <table>
+    <tr><th style="width:28%">Dönem</th><th>Gökyüzü hareketi ve anlamı</th></tr>
+    {% for t in y.transitler[:10] %}
+    <tr><td class="k" style="font-size:15px">{{ t.donem }}</td><td><span style="color:var(--ink)">{{ t.hareket }}</span><br>{% if t.anlam %}{{ t.anlam }}{% else %}<span class="hint">[Bu dönemin anlamı]</span>{% endif %}</td></tr>
+    {% endfor %}
+  </table>
+  {{ FOOT }}<div class="num">12</div>
+</section>
+{% set sayfa = 13 %}
+{% endif %}
+
+{# ---------- KAPANIŞ ---------- #}
+<section class="slide" style="align-items:center;text-align:center">
+  {{ STARS }}
+  <div class="eyebrow">Kapanış</div>
+  <h1 style="font-size:62px">Yıldızlar yönü gösterir,<br><em style="font-size:1em">yolu sen yürürsün.</em></h1>
+  <div class="txt" style="margin-top:32px;max-width:700px">{{ y.kapanis|metin(ipucu.kapanis) }}</div>
+  <div style="margin-top:40px;display:flex;gap:44px;justify-content:center;flex-wrap:wrap">
+    {% for etiket, deger in [('Instagram', marka.instagram), ('WhatsApp', marka.whatsapp), ('E-posta', marka.eposta)] %}{% if deger %}
+    <p><span style="color:var(--gold)">{{ etiket }}</span><br>{{ deger }}</p>{% endif %}{% endfor %}
+  </div>
+  <p style="position:absolute;bottom:90px;left:72px;right:72px;font-size:14px;opacity:.7">Bu rapor kişisel gelişim ve öz-farkındalık amaçlıdır; tıbbi, psikolojik, hukuki veya finansal danışmanlık yerine geçmez. Kişiye özeldir.</p>
+  {{ FOOT }}<div class="num">{{ '%02d'|format(sayfa) }}</div>
+</section>
+<script>
+// Sayfaya sığmayan metinlerin yazı boyutunu kademeli küçültür
+document.querySelectorAll('.slide').forEach(function(s){
+  var jc = s.style.justifyContent; s.style.justifyContent = 'flex-start';
+  var fs = 19;
+  while (s.scrollHeight > s.clientHeight + 1 && fs > 13) { fs -= 0.5; s.style.setProperty('--fs', fs + 'px'); }
+  s.style.justifyContent = jc;
+});
+</script>
+</body>
+</html>

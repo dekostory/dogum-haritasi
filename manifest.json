@@ -1,0 +1,3 @@
+{"name":"Doğum Haritası Asistanı","short_name":"Doğum Haritası","start_url":"./","scope":"./","display":"standalone",
+ "background_color":"#0f1226","theme_color":"#0f1226","lang":"tr",
+ "icons":[{"src":"ikon.svg","sizes":"any","type":"image/svg+xml"},{"src":"ikon-512.png","sizes":"512x512","type":"image/png"},{"src":"ikon-180.png","sizes":"180x180","type":"image/png"}]}
