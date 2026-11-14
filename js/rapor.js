@@ -1,4 +1,4 @@
-/* Rapor HTML'i — Mac panelindeki aynı Jinja şablonu (sablon/rapor.html.j2) Nunjucks ile işlenir. */
+/* Rapor HTML'leri — Mac panelindeki aynı Jinja şablonları (sablon/*.html.j2) Nunjucks ile işlenir. */
 (function (G) {
   const nj = G.nunjucks;
   let env = null;
@@ -14,19 +14,36 @@
     env.addFilter("format", (fmt, ...a) => fmt.replace(/%0?(\d*)d/, (m, w) => String(a[0]).padStart(+w || 0, "0")));
     return env;
   }
-  const SIRA = ["gunes", "ay", "merkur", "venus", "mars", "jupiter", "saturn", "uranus", "neptun", "pluton", "kdugum", "yukselen", "mc"];
-  function html(sablon, h, y, marka) {
-    const N = {}; h.noktalar.forEach(n => N[n.anahtar] = n);
-    const detay = {}; h.acilar.forEach(a => detay[`${a.a} ${a.aci} ${a.b}`] = a);
-    const acilar = (y.acilar || []).slice(0, 5).filter(a => detay[a.aci]).map(a => ({ ...detay[a.aci], yorum: a.yorum || "" }));
-    const S = x => new nj.runtime.SafeString(x);
+  function isle(sablon, ctx) {
     // Jinja'da {% set X %}…{% endset %} blokları güvenli sayılır; Nunjucks kaçırır → |safe ekle
     for (const [, ad] of sablon.matchAll(/\{%\s*set\s+(\w+)\s*%\}/g)) sablon = sablon.split(`{{ ${ad} }}`).join(`{{ ${ad}|safe }}`);
-    return ortam().renderString(sablon, {
+    return ortam().renderString(sablon, ctx);
+  }
+  const S = x => new nj.runtime.SafeString(x);
+  const SIRA = ["gunes", "ay", "merkur", "venus", "mars", "jupiter", "saturn", "uranus", "neptun", "pluton", "kdugum", "yukselen", "mc"];
+  const Nmap = h => Object.fromEntries(h.noktalar.map(n => [n.anahtar, n]));
+
+  function html(sablon, h, y, marka) {
+    const N = Nmap(h);
+    const detay = {}; h.acilar.forEach(a => detay[`${a.a} ${a.aci} ${a.b}`] = a);
+    const acilar = (y.acilar || []).slice(0, 5).filter(a => detay[a.aci]).map(a => ({ ...detay[a.aci], yorum: a.yorum || "" }));
+    return isle(sablon, {
       h, y, kisi: h.kisi, N, tablo: SIRA.filter(s => N[s]).map(s => N[s]), acilar, marka, ipucu: G.Yorum.V.IPUCU,
       toplam: Math.max(Object.values(h.elementler).reduce((a, b) => a + b, 0), 1),
       cark: S(G.Cark.svg(h, 620)), cark_kucuk: S(G.Cark.svg(h, 420)),
     });
   }
-  G.Rapor = { html };
+  function sinastriHtml(sablon, ha, hb, s, y, marka) {
+    const A = ha.kisi.ad.split(" ")[0], B = hb.kisi.ad.split(" ")[0], detay = {};
+    s.acilar.forEach(a => detay[`${A}: ${a.a_ad} ${a.aci} ${B}: ${a.b_ad}`] = a);
+    const acilar = (y.acilar || []).filter(a => detay[a.aci]).map(a => ({ d: detay[a.aci], yorum: a.yorum || "" })).slice(0, 6);
+    return isle(sablon, { ka: ha.kisi, kb: hb.kisi, NA: Nmap(ha), NB: Nmap(hb), s, y, acilar, marka,
+      IA: G.Sinastri.iyelik(A), IB: G.Sinastri.iyelik(B), cark_a: S(G.Cark.svg(ha, 380)), cark_b: S(G.Cark.svg(hb, 380)) });
+  }
+  function solarHtml(sablon, sr, y, marka) {
+    const N = Nmap(sr);
+    return isle(sablon, { k: sr.kisi, N, y, marka, tablo: SIRA.filter(s => N[s]).map(s => N[s]),
+      cark: S(G.Cark.svg(sr, 620)), cark_kucuk: S(G.Cark.svg(sr, 420)) });
+  }
+  G.Rapor = { html, sinastriHtml, solarHtml };
 })(typeof window !== "undefined" ? window : globalThis);

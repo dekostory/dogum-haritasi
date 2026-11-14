@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><title>{{ k.ad }} · {{ k.yil }} Yıllık Harita</title>
+<style>
+  @page { size: 900px 1273px; margin: 0; }
+  :root{ --bg:#0f1226; --ink:#f3eee3; --muted:#b9b4c9; --gold:#d8b46a; --line:rgba(216,180,106,.35); --soft:rgba(216,180,106,.14); }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{font-family:Inter,Helvetica,Arial,sans-serif;color:var(--ink)}
+  .slide{width:900px;height:1273px;position:relative;overflow:hidden;page-break-after:always;
+    background:radial-gradient(900px 700px at 85% 0%, #22285a 0%, transparent 60%), var(--bg);
+    padding:96px 72px 110px;display:flex;flex-direction:column;justify-content:center}
+  .slide:last-child{page-break-after:auto}
+  .slide.top{justify-content:flex-start}
+  .stars{position:absolute;inset:0;pointer-events:none;opacity:.5}
+  .num{position:absolute;bottom:44px;right:72px;font-size:13px;color:var(--muted);letter-spacing:.12em}
+  .brand{position:absolute;bottom:44px;left:72px;font-size:13px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
+  .eyebrow{font-size:16px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
+  h1{font-family:"Cormorant Garamond",Georgia,serif;font-weight:500;font-size:76px;line-height:1.04}
+  h2{font-family:"Cormorant Garamond",Georgia,serif;font-weight:500;font-size:56px;line-height:1.08;margin-bottom:30px}
+  h3{font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;font-size:30px;color:var(--gold)}
+  p{font-size:19px;line-height:1.6;color:var(--muted)}
+  .txt p + p{margin-top:10px}
+  .txt p{color:#dcd7e6;font-size:var(--fs,19px)}
+  .txt.sm p{font-size:calc(var(--fs,19px) - 2px)}
+  em{font-family:"Cormorant Garamond",Georgia,serif;font-style:italic;color:var(--gold);font-size:1.1em}
+  .hint{font-style:italic;color:var(--muted);opacity:.7}
+  .card{border:1px solid var(--line);border-radius:14px;padding:26px 30px;background:rgba(255,255,255,.025)}
+  .stack > * + *{margin-top:18px}
+  .head{display:flex;align-items:baseline;gap:14px;margin-bottom:10px;flex-wrap:wrap}
+  .sym{font-size:30px;color:var(--gold);line-height:1;font-family:"Apple Symbols","Segoe UI Symbol",serif}
+  .pos{font-size:15px;letter-spacing:.06em;color:var(--ink);margin-left:auto;border:1px solid var(--line);border-radius:20px;padding:4px 12px;white-space:nowrap}
+  ul.clean{list-style:none}
+  ul.clean li{padding-left:26px;position:relative;margin-bottom:12px;font-size:19px;line-height:1.5;color:var(--ink)}
+  ul.clean li:before{content:"✦";position:absolute;left:0;color:var(--gold);font-size:14px;top:5px}
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:500;padding:0 10px 10px;border-bottom:1px solid var(--line)}
+  td{font-size:17px;color:var(--muted);padding:10px 10px;border-bottom:1px solid var(--soft);vertical-align:top;line-height:1.5}
+  table.sik td{padding:6px 10px;font-size:16px}
+  td.k{color:var(--ink);white-space:nowrap}
+  .note{margin-top:34px;font-size:16px;color:var(--muted);border-left:2px solid var(--gold);padding-left:16px;line-height:1.55}
+  .bar{height:10px;border-radius:6px;background:var(--soft);overflow:hidden;margin:8px 0 18px}
+  .bar i{display:block;height:100%;background:var(--gold)}
+  .row{display:flex;justify-content:space-between;font-size:18px;color:var(--ink)}
+  .houses{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .house{border:1px solid var(--line);border-radius:12px;padding:12px 16px;background:rgba(255,255,255,.02)}
+  .house .t{font-size:14px;color:var(--gold);letter-spacing:.02em}
+  .house .b{font-size:16px;color:var(--ink);margin-top:3px}
+  .house .g{font-size:14px;color:var(--muted);margin-top:2px}
+  .tag{display:inline-block;font-size:12px;letter-spacing:.14em;text-transform:uppercase;padding:3px 10px;border-radius:20px;border:1px solid var(--line);color:var(--gold)}
+  .tag.zor{color:#e3a397;border-color:rgba(217,137,127,.5)}
+  .tag.uyumlu{color:#9cc8e4;border-color:rgba(127,183,217,.5)}
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+</head><body>
+<svg width="0" height="0" style="position:absolute"><defs>
+  <pattern id="st" width="220" height="220" patternUnits="userSpaceOnUse">
+    <circle cx="20" cy="30" r="1" fill="#fff"/><circle cx="140" cy="60" r=".7" fill="#fff"/>
+    <circle cx="90" cy="150" r="1.2" fill="#d8b46a"/><circle cx="190" cy="190" r=".8" fill="#fff"/>
+    <circle cx="60" cy="100" r=".6" fill="#fff"/><circle cx="170" cy="120" r=".9" fill="#fff"/>
+  </pattern>
+</defs></svg>
+
+{% set STARS %}<svg class="stars" width="900" height="1273"><rect width="900" height="1273" fill="url(#st)"/></svg>{% endset %}
+{% set FOOT %}<div class="brand">{{ marka.ad }}</div>{% endset %}
+
+<section class="slide">
+  {{ STARS }}
+  <div style="position:absolute;left:140px;top:740px;width:620px;height:533px;overflow:hidden;opacity:.5">{{ cark|safe }}</div>
+  <div style="position:relative;margin-top:-300px">
+    <div class="eyebrow">Yıllık Harita · Solar Return</div>
+    <h1>{{ k.ad }}<br><em style="font-size:1em">{{ k.yil }} Yılın</em></h1>
+    <div style="margin-top:34px;display:grid;grid-template-columns:auto 1fr;gap:8px 28px;font-size:18px">
+      <span style="color:var(--gold)">Güneş Dönüşü</span><span>{{ k.sr_tarih_metin }}</span>
+      <span style="color:var(--gold)">Konum</span><span>{{ k.sr_yer }}</span>
+      <span style="color:var(--gold)">Doğum</span><span>{{ k.tarih }} · {{ k.saat }} · {{ k.yer }}</span>
+    </div>
+  </div>
+  {{ FOOT }}
+</section>
+
+<section class="slide top">
+  {{ STARS }}
+  <div class="eyebrow">Yeni Yaşının Gökyüzü</div>
+  <h2 style="margin-bottom:10px">{{ k.yil }} yıllık haritan</h2>
+  <div style="display:flex;justify-content:center;margin:0 0 8px">{{ cark_kucuk|safe }}</div>
+  <table class="sik">
+    <tr><th>Nokta</th><th>Burç</th><th>Derece</th><th>Ev</th></tr>
+    {% for n in tablo %}<tr><td class="k">{{ n.sembol }} {{ n.ad }}</td><td>{{ n.burc_sembol }} {{ n.burc }}</td><td>{{ n.derece }}{% if n.retro %} ℞{% endif %}</td><td>{{ n.ev or '—' }}</td></tr>{% endfor %}
+  </table>
+  {{ FOOT }}<div class="num">02</div>
+</section>
+
+<section class="slide">
+  {{ STARS }}
+  <div class="eyebrow">Yılın Ana Temaları</div>
+  <h2>Bu yıl seni neler bekliyor?</h2>
+  <div class="txt" style="margin-bottom:24px">{{ y.giris|metin }}</div>
+  <div class="stack">
+    <div class="card"><div class="head"><span class="sym">↑</span><h3>Yılın Tonu</h3>{% if N.yukselen %}<span class="pos">Yükselen {{ N.yukselen.burc }}</span>{% endif %}</div><div class="txt">{{ y.tema|metin }}</div></div>
+    <div class="card"><div class="head"><span class="sym">☉&#xFE0E;</span><h3>Yılın Odağı</h3>{% if N.gunes.ev %}<span class="pos">Güneş {{ N.gunes.ev }}. evde</span>{% endif %}</div><div class="txt">{{ y.odak|metin }}</div></div>
+    <div class="card"><div class="head"><span class="sym">☽&#xFE0E;</span><h3>Duygusal İklim</h3><span class="pos">Ay {{ N.ay.burc }}{% if N.ay.ev %} · {{ N.ay.ev }}. ev{% endif %}</span></div><div class="txt">{{ y.duygu|metin }}</div></div>
+  </div>
+  {{ FOOT }}<div class="num">03</div>
+</section>
+
+<section class="slide">
+  {{ STARS }}
+  <div class="eyebrow">Öne Çıkanlar</div>
+  <h2>Yılın güçlü sahneleri</h2>
+  <div class="stack">
+    <div class="card"><h3 style="margin-bottom:10px">Öne çıkan gezegenler</h3><div class="txt">{{ y.guclu|metin }}</div></div>
+    {% if y.kariyer %}<div class="card"><h3 style="margin-bottom:10px">Kariyer ve hedefler</h3><div class="txt">{{ y.kariyer|metin }}</div></div>{% endif %}
+    <div class="card"><h3 style="margin-bottom:14px">✦ Bu yıl için önerilerim</h3>
+      <ul class="clean">{% for o in y.oneriler %}{% if o %}<li>{{ o }}</li>{% endif %}{% endfor %}</ul></div>
+  </div>
+  {{ FOOT }}<div class="num">04</div>
+</section>
+
+<section class="slide" style="align-items:center;text-align:center">
+  {{ STARS }}
+  <div class="eyebrow">Kapanış</div>
+  <h1 style="font-size:60px">Yeni yaşın,<br><em style="font-size:1em">yeni gökyüzün.</em></h1>
+  <div class="txt" style="margin-top:30px;max-width:700px">{{ y.kapanis|metin }}</div>
+  <div style="margin-top:40px;display:flex;gap:44px;justify-content:center;flex-wrap:wrap">
+    {% for etiket, deger in [['Instagram', marka.instagram], ['WhatsApp', marka.whatsapp], ['E-posta', marka.eposta]] %}{% if deger %}
+    <p><span style="color:var(--gold)">{{ etiket }}</span><br>{{ deger }}</p>{% endif %}{% endfor %}
+  </div>
+  <p style="position:absolute;bottom:90px;left:72px;right:72px;font-size:14px;opacity:.7">Bu rapor kişisel gelişim ve öz-farkındalık amaçlıdır; tıbbi, psikolojik, hukuki veya finansal danışmanlık yerine geçmez.</p>
+  {{ FOOT }}<div class="num">05</div>
+</section>
+<script>
+// Sayfaya sığmayan metinlerin yazı boyutunu kademeli küçültür
+document.querySelectorAll('.slide').forEach(function(s){
+  var jc = s.style.justifyContent; s.style.justifyContent = 'flex-start';
+  var fs = 19;
+  while (s.scrollHeight > s.clientHeight + 1 && fs > 13) { fs -= 0.5; s.style.setProperty('--fs', fs + 'px'); }
+  s.style.justifyContent = jc;
+});
+</script>
+
+</body></html>

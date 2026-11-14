@@ -45,7 +45,8 @@
   .grid{display:grid;gap:14px;grid-template-columns:minmax(0,1fr)}
   .grid > *{min-width:0}
   .g2{grid-template-columns:repeat(2,minmax(0,1fr))} .g3{grid-template-columns:repeat(3,minmax(0,1fr))}
-  @media (max-width:760px){ .g2,.g3{grid-template-columns:minmax(0,1fr)} h1{font-size:30px} nav .yazi{display:none} main{padding-top:16px}
+  @media (max-width:1000px){ nav .yazi{display:none} }
+  @media (max-width:760px){ .g2,.g3{grid-template-columns:minmax(0,1fr)} h1{font-size:30px} main{padding-top:16px} header .logo{font-size:20px} nav{gap:4px} nav .btn{padding:8px 10px}
     td,th{padding-left:5px;padding-right:5px} .ust3 .s{font-size:24px} }
   label{display:block;font-size:12px;color:var(--muted);margin:0 0 5px;letter-spacing:.04em}
   input,select,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:10px 12px;width:100%}
@@ -106,10 +107,13 @@
 <div id="kilit"><div class="serif" style="font-size:34px">Doğum Haritası</div><div class="muted">Devam etmek için PIN gir</div>
   <input id="pin" type="password" inputmode="numeric" autocomplete="off" maxlength="12"><button class="btn p" onclick="kilitAc()">Aç</button><div id="pinhata" class="durum"></div></div>
 <header>
-  <div class="logo serif" onclick="git('#liste')">Doğum <em>Haritası</em></div>
+  <div class="logo serif" onclick="git('#bugun')">Doğum <em>Haritası</em></div>
+  <span id="sn-durum" style="display:none;font-size:16px;cursor:pointer" onclick="senkronSimdi()"></span>
   <span class="sp"></span>
   <nav>
-    <button class="btn" onclick="git('#liste')">👥 <span class="yazi">Danışanlar</span></button>
+    <button class="btn" onclick="git('#bugun')" aria-label="Bugün">🏠 <span class="yazi">Bugün</span></button>
+    <button class="btn" onclick="git('#liste')" aria-label="Danışanlar">👥 <span class="yazi">Danışanlar</span></button>
+    <button class="btn" onclick="git('#sinastri')" aria-label="Sinastri">💞 <span class="yazi">Sinastri</span></button>
     <button class="btn p" onclick="git('#yeni')">＋ <span class="yazi">Yeni Okuma</span></button>
     <button class="btn" onclick="git('#ayarlar')" aria-label="Ayarlar">⚙️</button>
   </nav>
@@ -118,10 +122,16 @@
 <div id="tost"></div>
 <script src="lib/astronomy.min.js"></script>
 <script src="lib/nunjucks.min.js"></script>
+<script src="lib/jspdf.umd.min.js"></script>
 <script src="js/astro.js"></script>
 <script src="js/yorum.js"></script>
 <script src="js/cark.js"></script>
 <script src="js/rapor.js"></script>
+<script src="js/kripto.js"></script>
+<script src="js/senkron.js"></script>
+<script src="js/sinastri.js"></script>
+<script src="js/pdf.js"></script>
 <script src="js/app.js"></script>
+<script src="js/ozellikler.js"></script>
 </body>
 </html>

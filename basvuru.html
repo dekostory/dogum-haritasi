@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Doğum Haritası Okuması · Başvuru</title>
+<link rel="icon" href="ikon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#0f1226; --bg2:#151935; --ink:#f3eee3; --muted:#a9a4bb; --gold:#d8b46a; --line:rgba(216,180,106,.3); --red:#e3a397; color-scheme:dark }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Inter,Helvetica,Arial,sans-serif;background:radial-gradient(900px 600px at 80% -10%, #252b62 0%, transparent 60%), var(--bg);color:var(--ink);min-height:100vh;padding:40px 16px}
+  .w{max-width:620px;margin:0 auto}
+  .eyebrow{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold)}
+  h1{font-family:"Cormorant Garamond",Georgia,serif;font-weight:500;font-size:46px;line-height:1.05;margin:10px 0 12px}
+  h1 em{color:var(--gold)}
+  .lead{color:var(--muted);line-height:1.6;margin-bottom:26px}
+  .card{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:24px}
+  label{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin:16px 0 6px}
+  label:first-child{margin-top:0}
+  input,select,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;width:100%}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold)}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .ck{display:flex;gap:10px;align-items:flex-start;margin-top:10px;color:var(--muted);font-size:14px;line-height:1.5}
+  .ck input{width:auto;margin-top:3px;accent-color:var(--gold)}
+  .hint{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.5}
+  .ac{position:relative}
+  .sug{position:absolute;left:0;right:0;top:100%;background:var(--bg2);border:1px solid var(--gold);border-radius:10px;margin-top:4px;z-index:5;max-height:260px;overflow:auto;display:none}
+  .sug div{padding:10px 12px;cursor:pointer;border-bottom:1px solid rgba(216,180,106,.12)}
+  .sug div:hover{background:rgba(216,180,106,.12)}
+  button{font:inherit;font-weight:600;background:var(--gold);color:#1a1630;border:0;border-radius:10px;padding:14px 22px;width:100%;margin-top:22px;cursor:pointer;font-size:16px}
+  button:disabled{opacity:.6}
+  .err{color:var(--red);margin-top:12px;display:none}
+  .ok{text-align:center;padding:40px 10px;display:none}
+  .ok h2{font-family:"Cormorant Garamond",serif;font-weight:500;font-size:38px;margin-bottom:10px}
+  details{margin-top:12px;color:var(--muted);font-size:13px;line-height:1.6}
+  summary{cursor:pointer;color:var(--gold)}
+  .hp{position:absolute;left:-9999px}
+  @media (max-width:520px){ .row{grid-template-columns:1fr} h1{font-size:38px} }
+</style>
+</head>
+<body>
+<div class="w">
+  <div class="eyebrow" id="marka">Kişiye Özel Astroloji</div>
+  <h1>Doğum Haritası <em>Okuması</em> Başvurusu</h1>
+  <p class="lead">Doğum bilgilerini paylaş, haritanı hazırlayalım. Başvurunun ardından seninle iletişime geçip görüşme zamanını planlayacağız.</p>
+  <div class="card" id="kapali" style="display:none"><p class="lead" style="margin:0">Bu başvuru linki eksik ya da artık geçerli değil. Lütfen güncel linki iste.</p></div>
+  <div class="card" id="formKart">
+    <label>Ad Soyad</label><input id="ad" autocomplete="name">
+    <div class="row">
+      <div><label>Doğum Tarihi</label><input id="tarih" type="date"></div>
+      <div><label>Doğum Saati</label><input id="saat" type="time"></div>
+    </div>
+    <div class="ck"><input type="checkbox" id="saatyok" onchange="saat.disabled=this.checked"><span>Doğum saatimi bilmiyorum</span></div>
+    <p class="hint">Doğum saati yükselen burç ve evler için önemli. Nüfus kaydı veya hastane belgesinden öğrenebilirsin.</p>
+    <label>Doğum Yeri</label>
+    <div class="ac"><input id="yer" placeholder="Şehir veya ilçe yaz…" autocomplete="off"><div class="sug" id="sug"></div></div>
+    <p class="hint" id="yerSecili"></p>
+    <label>Paket</label>
+    <select id="paket"><option value="temel">Temel Okuma (yazılı rapor)</option><option value="detayli" selected>Detaylı Okuma (görüşme + rapor)</option><option value="premium">Premium Okuma (görüşme + rapor + 12 ay)</option></select>
+    <div class="row">
+      <div><label>Telefon (WhatsApp)</label><input id="telefon" type="tel" placeholder="05xx xxx xx xx" autocomplete="tel"></div>
+      <div><label>E-posta</label><input id="eposta" type="email" autocomplete="email"></div>
+    </div>
+    <label>Instagram (isteğe bağlı)</label><input id="instagram" placeholder="@kullaniciadi">
+    <label>Merak ettiğin konu (isteğe bağlı)</label><textarea id="konu" rows="3" placeholder="Örn. kariyer yönüm, ilişkilerim…"></textarea>
+    <input class="hp" id="web_sitesi" tabindex="-1" autocomplete="off">
+    <div class="ck"><input type="checkbox" id="kvkk"><span>Kişisel verilerimin (doğum bilgileri ve iletişim bilgilerim) yalnızca doğum haritası okuması ve benimle iletişim amacıyla işlenmesine onay veriyorum.</span></div>
+    <details><summary>Aydınlatma metni</summary>
+      <p style="margin-top:8px">Paylaştığın ad, doğum tarihi/saati/yeri ve iletişim bilgilerin yalnızca sana özel doğum haritası okumasını hazırlamak ve seninle iletişime geçmek için kullanılır; üçüncü kişilerle paylaşılmaz ve reklam amacıyla kullanılmaz. Bilgilerin gönderilmeden önce cihazında şifrelenir ve yalnızca danışmanın tarafından açılabilir. Verilerin hizmet tamamlandıktan sonra talebin hâlinde silinir. Haklarınla ilgili bize her zaman ulaşabilirsin.</p></details>
+    <button id="btn" onclick="gonder()">Başvuruyu Gönder</button>
+    <p class="err" id="err"></p>
+  </div>
+  <div class="card ok" id="ok"><h2>Teşekkürler ✨</h2><p class="lead" style="margin:0">Başvurun bize ulaştı. En kısa sürede WhatsApp üzerinden seninle iletişime geçeceğiz.</p></div>
+</div>
+<script src="js/kripto.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const P = new URLSearchParams(location.hash.slice(1));
+const URL_ = P.get("u"), ACIK = P.get("k");
+if (P.get("m")) $("marka").textContent = P.get("m");
+if (!URL_ || !ACIK || !/^https:\/\/script\.google\.com\//.test(URL_)) { $("formKart").style.display = "none"; $("kapali").style.display = "block"; }
+let secili = null, Y = null, tmr = null;
+function katla(s) { s = (s || "").replace(/İ/g, "i").replace(/I/g, "ı").toLowerCase(); const a = "ıöüşçğâîû", b = "iouscgaiu";
+  for (let i = 0; i < a.length; i++) s = s.split(a[i]).join(b[i]); return s.split(/\s+/).filter(Boolean).join(" "); }
+async function yukle() { if (!Y) { Y = await (await fetch("veri/yerler.json")).json(); Y.yerler.forEach(r => r[1] = "|" + r[1]); } }
+function ara(q) { q = katla(q); q = Y.tr_adlar[q] || q; const out = [], a = "|" + q;
+  for (const r of Y.yerler) if (r[1].includes(a)) { out.push({ ad: r[0], etiket: [r[0], r[2], Y.ulkeler[r[3]]].filter(Boolean).join(", "), enlem: r[4], boylam: r[5], tz: Y.tzler[r[6]] }); if (out.length >= 10) break; }
+  return out; }
+$("yer").addEventListener("focus", yukle);
+$("yer").addEventListener("input", e => {
+  secili = null; $("yerSecili").textContent = ""; clearTimeout(tmr); const q = e.target.value.trim();
+  if (q.length < 2) { $("sug").style.display = "none"; return; }
+  tmr = setTimeout(async () => { await yukle(); const r = ara(q);
+    $("sug").innerHTML = r.map((x, i) => `<div data-i="${i}">${x.etiket.replace(/</g, "&lt;")}</div>`).join("") || '<div style="cursor:default;color:#a9a4bb">Sonuç yok</div>';
+    $("sug").style.display = "block";
+    $("sug").querySelectorAll("[data-i]").forEach(d => d.onclick = () => { secili = r[+d.dataset.i]; $("yer").value = secili.etiket; $("sug").style.display = "none"; $("yerSecili").textContent = "✓ Seçildi"; });
+  }, 200);
+});
+document.addEventListener("click", e => { if (!e.target.closest(".ac")) $("sug").style.display = "none"; });
+function hata(m) { $("err").textContent = m; $("err").style.display = "block"; }
+async function gonder() {
+  $("err").style.display = "none";
+  if ($("web_sitesi").value) return;
+  if ($("ad").value.trim().length < 3) return hata("Lütfen adını ve soyadını yaz.");
+  if (!$("tarih").value) return hata("Doğum tarihini gir.");
+  if (!secili) return hata("Lütfen doğum yerini listeden seç.");
+  if (!$("saatyok").checked && !$("saat").value) return hata('Doğum saatini gir ya da "bilmiyorum" seçeneğini işaretle.');
+  if ($("telefon").value.replace(/\D/g, "").length < 10 && !$("eposta").value.includes("@")) return hata("Sana ulaşabilmemiz için telefon ya da e-posta gir.");
+  if (!$("kvkk").checked) return hata("Devam etmek için onay kutusunu işaretle.");
+  $("btn").disabled = true; $("btn").textContent = "Gönderiliyor…";
+  const b = { ad: $("ad").value.trim(), tarih: $("tarih").value, saat: $("saatyok").checked ? "" : $("saat").value, yer: secili.etiket, enlem: secili.enlem,
+    boylam: secili.boylam, tz: secili.tz, paket: $("paket").value, telefon: $("telefon").value, eposta: $("eposta").value, instagram: $("instagram").value,
+    konu: $("konu").value.slice(0, 1500), kvkk: true, zaman: new Date().toISOString() };
+  try {
+    const sifreli = await Kripto.acikAnahtarlaKilitle(b, ACIK);
+    await fetch(URL_, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: sifreli });
+    $("formKart").style.display = "none"; $("ok").style.display = "block"; window.scrollTo(0, 0);
+  } catch (e) { hata("Gönderilemedi, internet bağlantını kontrol edip tekrar dene."); $("btn").disabled = false; $("btn").textContent = "Başvuruyu Gönder"; }
+}
+</script>
+</body>
+</html>

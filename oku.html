@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0f1226">
+<title>Doğum Haritası Okuman</title>
+<link rel="icon" href="ikon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#0f1226; --bg2:#151935; --ink:#f3eee3; --muted:#b9b4c9; --gold:#d8b46a; --line:rgba(216,180,106,.3); --soft:rgba(216,180,106,.12); color-scheme:dark }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Inter,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.7;font-size:17px}
+  .w{max-width:720px;margin:0 auto;padding:0 20px 60px}
+  .kapak{min-height:92vh;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden;
+    background:radial-gradient(800px 600px at 90% 0%, #262c66 0%, transparent 60%)}
+  .kapak .cark{position:absolute;right:-38%;top:50%;transform:translateY(-50%);width:100%;max-width:760px;opacity:.22;pointer-events:none}
+  @media (min-width:900px){ .kapak .cark{right:-8%;width:60%} }
+  .kapak .cark svg{width:100%;height:auto}
+  .eyebrow{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+  h1{font-family:"Cormorant Garamond",Georgia,serif;font-weight:500;font-size:clamp(44px,11vw,72px);line-height:1.02}
+  h1 em{color:var(--gold)}
+  h2{font-family:"Cormorant Garamond",Georgia,serif;font-weight:500;font-size:34px;line-height:1.15;margin:8px 0 18px}
+  h3{font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;font-size:24px;color:var(--gold);display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  h3 .pos{margin-left:auto;font-family:Inter,sans-serif;font-size:12px;font-weight:500;color:var(--ink);border:1px solid var(--line);border-radius:20px;padding:2px 10px;letter-spacing:.04em}
+  .bilgi{display:grid;grid-template-columns:auto 1fr;gap:4px 20px;margin-top:26px;font-size:15px}
+  .bilgi span:nth-child(odd){color:var(--gold)}
+  section{padding:46px 0 10px;border-top:1px solid var(--soft)}
+  .card{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-bottom:14px}
+  p{color:#e0dbe9} p + p{margin-top:12px}
+  .muted{color:var(--muted);font-size:15px}
+  .carkk svg{width:100%;height:auto;max-width:560px;display:block;margin:0 auto}
+  table{width:100%;border-collapse:collapse;font-size:15px;margin-top:16px}
+  td{padding:8px 6px;border-bottom:1px solid var(--soft);color:var(--muted)} td:first-child{color:var(--ink)}
+  .bar{height:8px;border-radius:5px;background:var(--soft);overflow:hidden;margin:4px 0 12px}.bar i{display:block;height:100%;background:var(--gold)}
+  .row{display:flex;justify-content:space-between;font-size:15px}
+  ul{list-style:none} li{padding-left:24px;position:relative;margin-bottom:10px} li:before{content:"✦";position:absolute;left:0;color:var(--gold);font-size:13px;top:4px}
+  .not{font-size:13px;color:var(--muted);border-left:2px solid var(--gold);padding-left:12px;margin-top:20px}
+  .kilit{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px;text-align:center}
+  input{font:inherit;font-size:18px;color:var(--ink);background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center;max-width:260px;width:100%}
+  button{font:inherit;font-weight:600;background:var(--gold);color:#1a1630;border:0;border-radius:10px;padding:12px 22px;cursor:pointer}
+  .alt{text-align:center;color:var(--muted);font-size:14px;padding:30px 0}
+  .alt b{color:var(--gold);font-weight:500}
+  .tag{font-size:11px;letter-spacing:.12em;text-transform:uppercase;border:1px solid var(--line);border-radius:20px;padding:2px 8px;color:var(--gold);margin-left:auto;font-family:Inter,sans-serif;font-weight:500}
+</style>
+</head>
+<body>
+<div id="kok"><div class="kilit"><div class="muted">Açılıyor…</div></div></div>
+<script src="js/astro.js"></script><script src="js/cark.js"></script><script src="js/kripto.js"></script>
+<script>
+const e = s => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+const par = t => String(t || "").split("\n\n").map(x => x.trim()).filter(Boolean).map(x => `<p>${e(x)}</p>`).join("");
+const VERI = location.hash.slice(1);
+async function ac(sifre) {
+  try { ciz(await Kripto.linkAc(VERI, sifre)); }
+  catch (x) { if (VERI.startsWith("p.")) { kilit(sifre ? "Şifre yanlış." : ""); } else hataGoster(); }
+}
+function hataGoster() { document.getElementById("kok").innerHTML = `<div class="kilit"><h2>Link açılamadı</h2><p class="muted">Link eksik kopyalanmış olabilir. Lütfen sana gönderilen linkin tamamını aç.</p></div>`; }
+function kilit(m) {
+  document.getElementById("kok").innerHTML = `<div class="kilit"><div class="eyebrow">Kişiye özel rapor</div><h2>Şifreni gir</h2>
+    <input id="s" type="password" autocomplete="off"><button id="b">Aç</button><div class="muted">${e(m || "")}</div></div>`;
+  const s = document.getElementById("s"); s.focus();
+  document.getElementById("b").onclick = () => ac(s.value);
+  s.onkeydown = ev => { if (ev.key === "Enter") ac(s.value); };
+}
+function ciz(v) {
+  const h = v.h, y = v.y, k = h.kisi, N = Object.fromEntries(h.noktalar.map(n => [n.anahtar, n])), mk = v.marka || {};
+  const ilk = k.ad.split(" ")[0];
+  document.title = `${k.ad} · Doğum Haritası Okuması`;
+  const kart = (baslik, sym, pos, metin) => metin && String(metin).trim() ? `<div class="card"><h3>${sym ? `<span>${sym}</span>` : ""}${e(baslik)}${pos ? `<span class="pos">${e(pos)}</span>` : ""}</h3>${par(metin)}</div>` : "";
+  const pos = n => n ? `${n.burc} ${n.derece}${n.retro ? " ℞" : ""}${n.ev ? ` · ${n.ev}. ev` : ""}` : "";
+  const toplam = Math.max(Object.values(h.elementler).reduce((a, b) => a + b, 0), 1);
+  const bar = o => Object.entries(o).map(([a, x]) => `<div class="row"><span>${e(a)}</span><span style="color:var(--gold)">${x}</span></div><div class="bar"><i style="width:${Math.round(x / toplam * 100)}%"></i></div>`).join("");
+  const det = {}; h.acilar.forEach(a => det[`${a.a} ${a.aci} ${a.b}`] = a);
+  const SIRA = ["gunes", "ay", "merkur", "venus", "mars", "jupiter", "saturn", "uranus", "neptun", "pluton", "kdugum", "yukselen", "mc"];
+  document.getElementById("kok").innerHTML = `
+  <div class="kapak"><div class="cark">${Cark.svg(h, 620)}</div><div class="w" style="position:relative;width:100%">
+    <div class="eyebrow">Kişisel Doğum Haritası Okuması</div><h1>${e(k.ad)}<br><em>Gökyüzü Haritan</em></h1>
+    <div class="bilgi"><span>Doğum Tarihi</span><span>${e(k.tarih)}</span><span>Doğum Saati</span><span>${e(k.saat)}</span><span>Doğum Yeri</span><span>${e(k.yer)}</span><span>Rapor Tarihi</span><span>${e(k.rapor_tarihi)}</span></div>
+    <p class="muted" style="margin-top:30px">Aşağı kaydırarak oku ↓</p></div></div>
+  <div class="w">
+    <section><div class="eyebrow">Hoş Geldin</div><h2>Sevgili ${e(ilk)},</h2>${par(y.hosgeldin)}
+      <div class="card" style="margin-top:20px"><h3>Bu rapor nasıl okunur?</h3><ul style="margin-top:10px"><li><b>Gezegenler</b> → hayatındaki enerjiler (ne?)</li><li><b>Burçlar</b> → bu enerjileri yaşama tarzın (nasıl?)</li><li><b>Evler</b> → hayatın hangi alanında (nerede?)</li><li><b>Açılar</b> → enerjilerin birbiriyle ilişkisi</li></ul></div></section>
+    <section><div class="eyebrow">Doğum Haritan</div><h2>Bir bakışta haritan</h2><div class="carkk">${Cark.svg(h, 560)}</div>
+      <table>${SIRA.filter(s => N[s]).map(s => `<tr><td>${N[s].sembol} ${e(N[s].ad)}</td><td>${N[s].burc_sembol} ${e(N[s].burc)}</td><td>${N[s].derece}${N[s].retro ? " ℞" : ""}</td><td>${N[s].ev || "—"}</td></tr>`).join("")}</table></section>
+    <section><div class="eyebrow">Temelin</div><h2>Büyük Üçlü</h2>
+      ${kart("Güneş · Özün", "☉︎", pos(N.gunes), y.gunes)}${kart("Ay · Duyguların", "☽︎", pos(N.ay), y.ay)}${kart("Yükselen · Dünyaya Bakışın", "↑", N.yukselen ? `${N.yukselen.burc} ${N.yukselen.derece}` : "Saat gerekli", y.yukselen)}</section>
+    <section><div class="eyebrow">Kişisel Gezegenler</div><h2>Nasıl düşünür, sever ve harekete geçersin?</h2>
+      ${kart("Merkür · Zihnin", "☿︎", pos(N.merkur), y.merkur)}${kart("Venüs · Sevgin", "♀︎", pos(N.venus), y.venus)}${kart("Mars · İraden", "♂︎", pos(N.mars), y.mars)}</section>
+    <section><div class="eyebrow">Büyük Resim</div><h2>Büyüme, sorumluluk ve dönüşüm</h2>
+      ${[["jupiter", "Jüpiter · Şansın"], ["saturn", "Satürn · Ustalığın"], ["uranus", "Uranüs · Özgürlüğün"], ["neptun", "Neptün · Hayallerin"], ["pluton", "Plüton · Dönüşümün"]].map(([s, b]) => kart(b, N[s].sembol, pos(N[s]), y[s])).join("")}
+      <p class="not">Uranüs, Neptün ve Plüton yavaş hareket eder; burçları bir kuşağı anlatır. Asıl kişisel anlamlarını bulundukları ev gösterir.</p></section>
+    <section><div class="eyebrow">Enerji Dengen</div><h2>Element ve nitelik dağılımın</h2><div class="card">${bar(h.elementler)}<div style="height:8px"></div>${bar(h.nitelikler)}</div>${par(y.element_yorumu)}</section>
+    ${h.evler ? `<section><div class="eyebrow">Hayat Alanların</div><h2>12 ev: hayatın sahneleri</h2>
+      <table>${h.evler.map(ev => `<tr><td>${ev.no} · ${e(ev.alan)}</td><td>${ev.burc_sembol} ${e(ev.burc)}</td><td>${ev.gezegenler.map(g => g.sembol).join(" ")}</td></tr>`).join("")}</table>
+      <div style="margin-top:18px">${par(y.evler_yorumu)}</div></section>` : ""}
+    <section><div class="eyebrow">Gezegen Diyalogları</div><h2>Haritanda öne çıkan açılar</h2>
+      ${(y.acilar || []).slice(0, 5).map(a => { const d = det[a.aci]; return d && a.yorum ? `<div class="card"><h3 style="font-size:21px">${d.a_sembol} ${e(d.a)} ${d.aci_sembol} ${d.b_sembol} ${e(d.b)}<span class="tag">${e(d.aci)}</span></h3>${par(a.yorum)}</div>` : ""; }).join("")}
+      <p class="not">Uyumlu açılar doğal yeteneklerini, zorlayıcı açılar ise seni en çok geliştiren alanları gösterir. İkisi de değerlidir.</p></section>
+    <section><div class="eyebrow">Odak Konular</div><h2>İlişkiler, kariyer ve yaşam yolun</h2>
+      ${kart("İlişkiler", "♡", "", y.iliskiler)}${kart("Kariyer", "◈", "", y.kariyer)}${kart("Yaşam Yolun", "☊︎", N.kdugum ? `Kuzey Düğüm · ${N.kdugum.burc}` : "", y.yasam_yolu)}</section>
+    <section><div class="eyebrow">Özet</div><h2>Güçlü yönlerin ve gelişim alanların</h2>
+      <div class="card"><h3>✦ Güçlü Yönlerin</h3><ul style="margin-top:10px">${(y.guclu_yonler || []).filter(Boolean).map(g => `<li>${e(g)}</li>`).join("")}</ul></div>
+      <div class="card"><h3>⟡ Gelişim Alanların</h3><ul style="margin-top:10px">${(y.gelisim_alanlari || []).filter(Boolean).map(g => `<li>${e(g)}</li>`).join("")}</ul></div>
+      <p class="not">Gelişim alanları "eksik" değil, hayatın sana sunduğu büyüme davetleridir.</p></section>
+    ${y.paket === "premium" && (y.transitler || []).length ? `<section><div class="eyebrow">Önümüzdeki 12 Ay</div><h2>Seni bekleyen dönemler</h2>
+      ${y.transitler.map(t => `<div class="card"><div class="muted">${e(t.donem)}</div><div style="margin:4px 0 6px">${e(t.hareket)}</div>${t.anlam ? `<p class="muted">${e(t.anlam)}</p>` : ""}</div>`).join("")}</section>` : ""}
+    <section style="text-align:center"><div class="eyebrow">Kapanış</div><h2 style="font-size:40px">Yıldızlar yönü gösterir,<br><em style="color:var(--gold)">yolu sen yürürsün.</em></h2>${par(y.kapanis)}</section>
+    <div class="alt">${[["Instagram", mk.instagram], ["WhatsApp", mk.whatsapp], ["E-posta", mk.eposta]].filter(x => x[1]).map(x => `${x[0]}: <b>${e(x[1])}</b>`).join(" · ")}
+      ${mk.ad ? `<div style="margin-top:8px;letter-spacing:.14em;text-transform:uppercase;font-size:12px">${e(mk.ad)}</div>` : ""}
+      <p style="font-size:12px;margin-top:18px;color:var(--muted)">Bu rapor kişisel gelişim ve öz-farkındalık amaçlıdır; tıbbi, psikolojik, hukuki veya finansal danışmanlık yerine geçmez. Kişiye özeldir.</p></div>
+  </div>`;
+}
+if (!VERI || !/^[kp]\./.test(VERI)) hataGoster(); else if (VERI.startsWith("p.")) kilit(""); else ac();
+</script>
+</body>
+</html>

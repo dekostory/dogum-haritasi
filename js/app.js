@@ -7,7 +7,7 @@ const ANA = $("#ana");
 let SABLON = "", YERLER = null, SURUM = "";
 
 // ---------------- depo ----------------
-const ANAHTAR = "dh.musteriler", MARKA = "dh.marka", PIN = "dh.pin";
+const ANAHTAR = "dh.musteriler", MARKA = "dh.marka", PIN = "dh.pin", SINASTRI = "dh.sinastriler", SILINEN = "dh.silinenler", BASVURU = "dh.basvuru";
 function jOku(k, v) { try { return JSON.parse(localStorage.getItem(k)) ?? v; } catch { return v; } }
 function jYaz(k, v) {
   try { localStorage.setItem(k, JSON.stringify(v)); return true; }
@@ -15,8 +15,28 @@ function jYaz(k, v) {
 }
 const tumu = () => jOku(ANAHTAR, {});
 const musteri = id => tumu()[id];
-function kaydet(m) { const t = tumu(); m.guncelleme = new Date().toISOString(); t[m.id] = m; jYaz(ANAHTAR, t); }
-function sil(id) { const t = tumu(); delete t[id]; jYaz(ANAHTAR, t); }
+function kaydet(m) { const t = tumu(); m.guncelleme = new Date().toISOString(); t[m.id] = m; jYaz(ANAHTAR, t); senkronZamanla(); }
+function mezar(anahtar) { const s = jOku(SILINEN, {}); s[anahtar] = new Date().toISOString(); jYaz(SILINEN, s); }
+function sil(id, kalici = true, yeniId = null) {
+  const t = tumu(); delete t[id]; jYaz(ANAHTAR, t);
+  if (!kalici) return;
+  mezar(id);
+  const st = jOku(SINASTRI, {});  // bağlı sinastriler: kişi silindiyse silinir, kimliği değiştiyse taşınır
+  for (const x of Object.values(st)) {
+    if (x.veri.a !== id && x.veri.b !== id) continue;
+    delete st[x.id]; mezar("s:" + x.id);
+    if (yeniId) { x.veri.a = x.veri.a === id ? yeniId : x.veri.a; x.veri.b = x.veri.b === id ? yeniId : x.veri.b; x.id = `${x.veri.a}__${x.veri.b}`; x.guncelleme = new Date().toISOString(); st[x.id] = x; }
+  }
+  jYaz(SINASTRI, st); senkronZamanla();
+}
+function danisanSil(id) {
+  const m = musteri(id);
+  if (!confirm(`${m.harita.kisi.ad} kalıcı olarak silinsin mi? (Eşitleme açıksa diğer cihazlardan da kaldırılır; Mac'te “_silinenler” klasörüne taşınır.)\n\nSadece listeden kaldırmak istiyorsan “Arşivle”yi kullan.`)) return;
+  sil(id, true); tost("Silindi"); git("#liste");
+}
+const sinastriler = () => jOku(SINASTRI, {});
+function sinastriKaydet(x) { const t = sinastriler(); x.guncelleme = new Date().toISOString(); t[x.id] = x; jYaz(SINASTRI, t); senkronZamanla(); }
+function sinastriSil(id) { const t = sinastriler(); delete t[id]; jYaz(SINASTRI, t); mezar("s:" + id); senkronZamanla(); }
 const PAKET_AD = { temel: "Temel Okuma", detayli: "Detaylı Okuma", premium: "Premium Okuma" };
 function marka() {
   const m = jOku(MARKA, {});
@@ -104,11 +124,15 @@ function yerAra(q, limit = 12) {
 function git(h) { if (location.hash === h) yonlendir(); else location.hash = h; }
 window.addEventListener("hashchange", yonlendir);
 function yonlendir() {
-  const h = decodeURIComponent(location.hash.slice(1) || "liste");
+  const h = decodeURIComponent(location.hash.slice(1) || "bugun");
   const [v, id, sekme] = h.split("/");
   window.scrollTo(0, 0);
   if (v === "yeni") return formEkrani();
   if (v === "ayarlar") return ayarlarEkrani();
+  if (v === "bugun") return bugunEkrani();
+  if (v === "sinastri") return sinastriListe();
+  if (v === "s" && id && sinastriler()[id]) return sinastriEkrani(id, sekme || "genel");
+  if (v === "basvurular") return basvuruEkrani();
   if (v === "m" && id && musteri(id)) return musteriEkrani(id, sekme || "genel");
   return listeEkrani();
 }
@@ -253,14 +277,14 @@ function duzenleAc(id) {
       const r = olustur(g, yenile ? null : JSON.parse(JSON.stringify(m.yorumlar)), yenile);
       if (r.id !== id && musteri(r.id) && !confirm("Bu ad ve tarihle başka bir kayıt var; üzerine yazılsın mı?")) return;
       const yeni = { ...m, id: r.id, harita: r.harita, yorumlar: r.yorumlar };
-      if (r.id !== id) sil(id);
+      if (r.id !== id) sil(id, true, r.id);
       kaydet(yeni); o.remove(); tost("Güncellendi"); git(`#m/${r.id}`);
     } catch (x) { console.error(x); alert("Hesaplanamadı: " + x.message); }
   };
 }
 
 // ---------------- danışan ekranı ----------------
-const SEKMELER = [["genel", "Genel"], ["evler", "Evler"], ["acilar", "Açılar"], ["transit", "Transit"], ["yorum", "Yorumlar"], ["takip", "Takip"], ["rapor", "Rapor"]];
+const SEKMELER = [["genel", "Genel"], ["evler", "Evler"], ["acilar", "Açılar"], ["transit", "Transit"], ["yorum", "Yorumlar"], ["takip", "Takip"], ["yillik", "Yıllık"], ["rapor", "Rapor"]];
 function musteriEkrani(id, sekme) {
   const m = musteri(id), k = m.harita.kisi, ar = (m.takip || {}).arsiv;
   ANA.innerHTML = `
@@ -269,11 +293,12 @@ function musteriEkrani(id, sekme) {
       <h1>${e(k.ad)}</h1>
       <button class="btn k" onclick="duzenleAc('${e(id)}')">✏️ Bilgileri düzenle</button>
       <button class="btn k" onclick="arsivle('${e(id)}', ${!ar})">${ar ? "↩︎ Arşivden çıkar" : "🗄 Arşivle"}</button>
+      ${ar ? `<button class="btn k tehlike" onclick="danisanSil('${e(id)}')">🗑 Sil</button>` : ""}
     </div>
     <div class="muted" style="margin-top:6px">${e(k.tarih)} · ${e(k.saat)} · ${e(k.yer)} <span class="durum">(UTC+${e(m.harita.utc_ofset.replace(/:00$/, ""))})</span> · <span class="rozet">${e(PAKET_AD[k.paket])}</span>${ar ? ' <span class="rozet" style="color:var(--muted)">Arşivde</span>' : ""}</div>
     <div class="sekmeler">${SEKMELER.map(([s, a]) => `<button class="${s === sekme ? "on" : ""}" onclick="location.hash='#m/${e(id)}/${s}'">${a}</button>`).join("")}</div>
     <div id="ic"></div>`;
-  ({ genel: sGenel, evler: sEvler, acilar: sAcilar, transit: sTransit, yorum: sYorum, takip: sTakip, rapor: sRapor }[sekme] || sGenel)(m);
+  ({ genel: sGenel, evler: sEvler, acilar: sAcilar, transit: sTransit, yorum: sYorum, takip: sTakip, yillik: sYillik, rapor: sRapor }[sekme] || sGenel)(m);
 }
 function arsivle(id, durum) {
   const m = musteri(id); m.takip = m.takip || {}; m.takip.arsiv = durum; m.takip.arsiv_tarihi = durum ? bugunTR() : "";
@@ -380,12 +405,14 @@ function sTakip(m) {
     <div><label>Ödeme</label>${sel("tk-odeme", t.odeme, [["bekliyor", "Bekliyor"], ["alindi", "Alındı"], ["yok", "Ücretsiz / yok"]])}</div>
     <div><label>Görüşme tarihi</label><input id="tk-gorusme" type="datetime-local" value="${e(t.gorusme)}"></div>
     <div><label>Durum</label>${sel("tk-durum", t.durum, DURUM)}</div>
-    <div class="tam"><label>Görüşme notları</label><textarea id="tk-notlar" rows="6" placeholder="Danışanın söyledikleri, soruları, öne çıkan konular…">${e(m.notlar || "")}</textarea></div>
+    <div class="tam"><div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><label style="margin:0">Görüşme notları</label><span class="sp"></span>
+      <button class="btn k" type="button" id="tk-ses" onclick="sesleYaz('#tk-notlar', this)">🎙 Sesle yaz</button></div><textarea id="tk-notlar" rows="6" placeholder="Danışanın söyledikleri, soruları, öne çıkan konular…">${e(m.notlar || "")}</textarea></div>
   </div>
   <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;align-items:center"><button class="btn p" id="tk-kaydet">Kaydet</button>
     ${tel ? `<a class="btn" href="https://wa.me/${tel}" target="_blank" rel="noopener">💬 WhatsApp</a>` : ""}
     ${t.eposta ? `<a class="btn" href="mailto:${e(t.eposta)}">✉️ E-posta</a>` : ""}<span class="durum">${t.odeme_tarihi ? `Ödeme alındı: ${e(t.odeme_tarihi)}` : ""}</span></div>
   ${t.gecmis.length ? `<div class="durum" style="margin-top:14px">${t.gecmis.slice().reverse().map(g => `${e(g.zaman)} · ${e(DURUM_AD[g.durum] || g.durum)}`).join("<br>")}</div>` : ""}</div>`;
+  let ntTmr; $("#tk-notlar").addEventListener("input", () => { clearTimeout(ntTmr); ntTmr = setTimeout(() => { const mm = musteri(m.id); mm.notlar = $("#tk-notlar").value; kaydet(mm); }, 800); });
   $("#tk-kaydet").onclick = () => {
     const mm = musteri(m.id), tk = { ...t, ...(mm.takip || {}) }, yeni = {};
     ["telefon", "eposta", "instagram", "kaynak", "ucret", "odeme", "gorusme", "durum"].forEach(a => yeni[a] = $("#tk-" + a).value);
@@ -411,12 +438,17 @@ function sRapor(m) {
   const k = kontrol(m), mk = marka();
   $("#ic").innerHTML = `<div class="card">
     <h3>Kişisel rapor (PDF)</h3>
-    <p class="muted" style="margin:8px 0 14px;line-height:1.6">Rapor yeni bir sekmede açılır. Oradaki <b>“PDF olarak kaydet”</b> düğmesine bas, yazdırma ekranında hedef olarak <b>PDF olarak kaydet</b>'i seç.
-      Telefonda: Paylaş → Yazdır → önizlemeyi iki parmakla büyüt → Paylaş → Dosyalara kaydet.</p>
+    <p class="muted" style="margin:8px 0 14px;line-height:1.6"><b>PDF indir</b> raporu doğrudan dosya olarak hazırlar (10–20 sn). Telefonda ardından “Paylaş” ile WhatsApp'a gönderebilir ya da Dosyalar'a kaydedebilirsin.
+      <b>Önizle / yazdır</b> raporu yeni sekmede açar; oradan da yazdırıp PDF alabilirsin.</p>
     ${k.bos.length ? `<div class="uyari" style="margin-bottom:12px">Boş bölümler (raporda yönlendirme metni görünecek): ${k.bos.map(e).join(", ")}</div>` : `<div class="bilgi" style="margin-bottom:12px">✓ Tüm bölümler dolu.</div>`}
     ${k.kosel.length ? `<div class="uyari" style="margin-bottom:12px">Köşeli parantez içinde kalmış metin var: ${k.kosel.map(e).join(", ")}</div>` : ""}
     ${!mk.ad ? `<div class="uyari" style="margin-bottom:12px">Marka adı girilmemiş; raporun alt bilgisi boş kalacak. <a href="#ayarlar">Ayarlar</a></div>` : ""}
-    <button class="btn p" onclick="raporAc('${e(m.id)}')">📄 Raporu aç</button></div>`;
+    ${raporIslemHtml("rapor", m.id)}</div>
+    <div class="card" style="margin-top:14px"><h3>🔗 Danışana rapor linki</h3>
+      <p class="muted" style="margin:8px 0 12px;line-height:1.6">PDF yerine telefonda rahat okunan bir sayfa. Rapor linkin içinde şifreli taşınır; hiçbir sunucuya kaydedilmez.
+        İstersen bir şifre koy, şifreyi danışana ayrıca söyle.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><input id="lk-sifre" placeholder="Şifre (isteğe bağlı)" style="max-width:240px" autocomplete="off">
+        <button class="btn p" onclick="linkOlustur('${e(m.id)}')">Link oluştur</button></div><div id="lk-sonuc" style="margin-top:12px"></div></div>`;
 }
 function raporAc(id) {
   const m = musteri(id);
@@ -432,12 +464,15 @@ function raporAc(id) {
 // ---------------- ayarlar ----------------
 function ayarlarEkrani() {
   const mk = marka(), t = Object.keys(tumu()).length;
+  setTimeout(() => { senkronKart(); basvuruKart(); }, 0);
   ANA.innerHTML = `<div class="eyebrow">Ayarlar</div><h1>Marka, yedek ve güvenlik</h1>
   <div class="grid" style="margin-top:18px">
     <div class="card"><h3 style="margin-bottom:12px">Marka bilgileri (raporda görünür)</h3><div class="form">
       <div><label>Marka adı</label><input id="mk-ad" value="${e(mk.ad)}"></div><div><label>Instagram</label><input id="mk-instagram" value="${e(mk.instagram)}"></div>
       <div><label>WhatsApp</label><input id="mk-whatsapp" value="${e(mk.whatsapp)}"></div><div><label>E-posta</label><input id="mk-eposta" value="${e(mk.eposta)}"></div></div>
       <button class="btn p" style="margin-top:14px" onclick="markaKaydet()">Kaydet</button></div>
+    <div class="card" id="senkron-kart"></div>
+    <div class="card" id="basvuru-kart"></div>
     <div class="card"><h3 style="margin-bottom:8px">Yedek ve Mac ile aktarım</h3>
       <p class="muted" style="line-height:1.6;margin-bottom:12px">Danışanlar <b>sadece bu cihazda</b> saklanır (${t} kişi). Telefonu değiştirir ya da tarayıcı verilerini silersen kaybolur; ara ara yedek indir.
         Aynı yedek dosyası Mac'teki panele de yüklenebilir, Mac'teki danışanlar da buraya alınabilir (Mac panelinde: Ayarlar → Canlı sürüm).</p>
@@ -452,9 +487,10 @@ function ayarlarEkrani() {
       ${t ? `<button class="btn tehlike" style="margin-top:12px" onclick="hepsiniSil()">Bu cihazdaki tüm danışanları sil</button>` : ""}</div>
   </div>`;
 }
-function markaKaydet() { const m = {}; ["ad", "instagram", "whatsapp", "eposta"].forEach(a => m[a] = $("#mk-" + a).value.trim()); jYaz(MARKA, m); tost("Kaydedildi"); }
+function markaKaydet() { const m = {}; ["ad", "instagram", "whatsapp", "eposta"].forEach(a => m[a] = $("#mk-" + a).value.trim()); m.guncelleme = new Date().toISOString(); jYaz(MARKA, m); senkronZamanla(); tost("Kaydedildi"); }
 function yedekIndir() {
-  const veri = { tur: "dogum-haritasi-yedek", surum: 1, tarih: new Date().toISOString(), kaynak: "canli", marka: marka(), musteriler: Object.values(tumu()) };
+  const veri = { tur: "dogum-haritasi-yedek", surum: 2, tarih: new Date().toISOString(), kaynak: "canli", marka: marka(), musteriler: Object.values(tumu()),
+                 sinastriler: Object.values(sinastriler()), silinenler: jOku(SILINEN, {}) };
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([JSON.stringify(veri, null, 1)], { type: "application/json" }));
   const d = new Date(); a.download = `dogum-haritasi-yedek-${d.getFullYear()}${p2(d.getMonth() + 1)}${p2(d.getDate())}-${p2(d.getHours())}${p2(d.getMinutes())}.json`;
@@ -472,11 +508,15 @@ async function yedekYukle(f) {
     else if ((m.guncelleme || "") > (var_.guncelleme || "")) { t[m.id] = m; guncel++; }
     else atla++;
   }
+  const st = sinastriler();
+  for (const x of v.sinastriler || []) if (x.id && x.veri && (!st[x.id] || (x.guncelleme || "") > (st[x.id].guncelleme || ""))) st[x.id] = x;
+  jYaz(SINASTRI, st);
   const mk = marka();
   if (v.marka && !mk.ad && v.marka.ad && !String(v.marka.ad).startsWith("[")) jYaz(MARKA, v.marka);
-  if (jYaz(ANAHTAR, t)) { alert(`Yüklendi.\nYeni: ${yeni}\nGüncellenen: ${guncel}\nDeğişmeyen (bu cihazdaki daha yeni): ${atla}`); git("#liste"); }
+  if (jYaz(ANAHTAR, t)) { senkronZamanla(); alert(`Yüklendi.\nYeni: ${yeni}\nGüncellenen: ${guncel}\nDeğişmeyen (bu cihazdaki daha yeni): ${atla}`); git("#liste"); }
 }
 function hepsiniSil() {
+  if (Senkron.kurulu()) return alert("Eşitleme açıkken danışanlar buluttan geri gelir. Önce Ayarlar → Otomatik eşitleme → “Bu cihazda kapat”.");
   if (!confirm("Bu cihazdaki TÜM danışanlar silinecek. Önce yedek indirdin mi?")) return;
   if (prompt("Onay için SİL yaz") !== "SİL") return;
   localStorage.removeItem(ANAHTAR); tost("Silindi"); git("#liste");
@@ -500,6 +540,7 @@ async function kilitAc() {
   } catch (x) { ANA.innerHTML = `<div class="uyari">Uygulama dosyaları yüklenemedi. İnternet bağlantını kontrol edip sayfayı yenile.</div>`; return; }
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+  senkronBaslat();
   if (localStorage.getItem(PIN) && !sessionStorage.getItem("dh.acik")) {
     $("#kilit").style.display = "flex"; $("#pin").focus();
     $("#pin").addEventListener("keydown", ev => { if (ev.key === "Enter") kilitAc(); });
