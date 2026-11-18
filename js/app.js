@@ -325,9 +325,16 @@ function sGenel(m) {
 function sEvler(m) {
   const h = m.harita;
   if (!h.evler) { $("#ic").innerHTML = `<div class="uyari">Doğum saati bilinmediği için evler hesaplanamadı. Saat öğrenilirse “Bilgileri düzenle” ile ekleyebilirsin.</div>`; return; }
-  $("#ic").innerHTML = `<div class="grid g3">${h.evler.map(ev => `<div class="card"><div class="durum" style="color:var(--gold)">${ev.no}. ev · ${e(ev.alan)}</div>
+  const Y = Evler.evYorumlari(h);
+  $("#ic").innerHTML = `<p class="muted" style="margin-bottom:14px;line-height:1.6">Her evin yorumu; evin burcu, içindeki gezegenler ve ev yöneticisinin durumuna (burcu, evi, gücü, geri hareketi, açıları) göre otomatik hazırlanır. Kopyalayıp rapora ya da mesaja ekleyebilirsin.</p>
+    <div class="grid g2">${h.evler.map(ev => `<div class="card"><div class="durum" style="color:var(--gold)">${ev.no}. ev · ${e(ev.alan)}</div>
     <div style="font-size:17px;margin-top:4px">${ev.burc_sembol} ${e(ev.burc)} <span class="durum">${ev.derece}</span></div>
-    <div class="durum" style="margin-top:4px">${ev.gezegenler.map(g => `${g.sembol} ${e(g.ad)}`).join(", ") || "&nbsp;"}</div></div>`).join("")}</div>`;
+    <div class="durum" style="margin-top:4px">${ev.gezegenler.map(g => `${g.sembol} ${e(g.ad)}`).join(", ") || "&nbsp;"}</div>
+    <div class="ev-yorum">${e(Y[ev.no]).split("\n\n").map(x => `<p>${x}</p>`).join("")}</div>
+    <button class="btn ev-kopya" data-no="${ev.no}">Kopyala</button></div>`).join("")}</div>`;
+  $("#ic").querySelectorAll(".ev-kopya").forEach(b => b.onclick = async () => {
+    try { await navigator.clipboard.writeText(Y[b.dataset.no]); tost("Ev yorumu kopyalandı"); } catch { tost("Kopyalanamadı"); }
+  });
 }
 function sAcilar(m) {
   const renk = { uyumlu: "var(--blue)", zor: "var(--red)", "nötr": "var(--gold)" };
